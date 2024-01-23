@@ -1,0 +1,19 @@
+{
+    "property":
+        {
+            "connection_in_parent":[0, 0],
+            "origin_point":[32, 32],
+            "children_parts_name":["parts_0_1"]
+        },
+    "move":
+        {
+            "t0":0,
+            "movement":
+            {
+                "test_0_rotate":[0, 10, "x**2"],
+                "test_1_rotate":[0, 1, "x"],
+                "test_2_rotate":[0, 1, "10*(x+x**2+x**3)\/math.e**(x-1)"],
+                "test_3_rotate":[0, 1, "-10*(x+x**2+x**3)\/math.e**(x-1)"]
+            }
+        }
+}
