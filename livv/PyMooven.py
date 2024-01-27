@@ -5,11 +5,9 @@ import math # ネイピア数とかを使用した関数で部品を動かす角
 from scipy import integrate # 積分して角の変位を決める
 import json # 動作設定ファイルが.jsonだから, こいつ無いと読み込めない
 
-from random import randint
-
 import pyglet
-from pyglet import app
-from pyglet.window import Window
+
+from time import sleep
 
 """
 imgは全てpngで統一しておく(.jpgとかは一旦無視して、pngで動くようにする)
@@ -38,7 +36,7 @@ obj_B
 """
 
 class mooven:
-  def __init__(self, this_parts_name, setting_dir, parts_image_dir_path, bat=None, pxyr=[0, 0, 0]): # pxyr ==> previous_part_xyr.
+  def __init__(self, this_parts_name, setting_dir, parts_image_dir_path, bat=None, pxy=[0, 0, 0], parents_anchor=[0, 0]):
     if bat != None:
       global batch
       batch = bat
@@ -46,25 +44,32 @@ class mooven:
     self.setting_dir = setting_dir
     self.parts_image_dir_path = parts_image_dir_path
     self.parts_image_path = os.path.join(self.parts_image_dir_path, self.this_parts_name) + ".png" # 画像のパス
-    self.parents_xyr = [270, 270, 0] # 親部品のxy座標及び回転.
-    self.previous_part_xyr = pxyr # この部品の前のフレームでのxy座標及び回転.
-    with open(os.path.join(self.setting_dir, self.this_parts_name)+".json", mode="r") as f:
-      self.parts_data = json.load(f)
+    self.first_parents_xyr = pxy # 最初の親部品の座標.
+    self.parents_anchor = parents_anchor # 親のアンカー座標.
+    try:
+      with open(os.path.join(self.setting_dir, self.this_parts_name)+".json", mode="r") as f:
+        self.parts_data = json.load(f)
+      self.tf = True
+    except:
+      self.tf = False
+      return
     self.main_load()
-    self.test_flag = True
+#    self.test_flag = False
+    self.test_flag = True if this_parts_name == "parts_0" else False
 
   def main_load(self):
     """
 各部品の親部品(接続元)を原点として自分の相対座標と角度を計算して親部品に結果を返す
 親部品の座標基準でどこに接続しているのかを確認する必要がある。
     """
-    self.parts_img = pyglet.image.load(self.parts_image_path) # 画像読み込み
     self.property = self.parts_data["property"]
-
     self.base_point = self.property["connection_in_parent"] # 親部品での接続座標
-    self.origin_point = self.property["origin_point"] # x, y
+    self.origin_point = self.property["origin_point"] # アンカー座標.
+
+    self.parts_img = pyglet.image.load(self.parts_image_path) # 画像読み込み
     self.parts_img.anchor_x = self.origin_point[0]
     self.parts_img.anchor_y = self.origin_point[1]
+
     self.children_parts_name = self.property["children_parts_name"] # 子パーツのリスト
 
     self.move = self.parts_data["move"]
@@ -77,20 +82,27 @@ class mooven:
     self.movement = [i[2] for i in self.movement] # 関数のみ.
     self.acting_time = [0 for i in range(len(self.act_name_list))] # 実行中の動作の経過時間
     self.acting_movement = [False for i in range(len(self.act_name_list))] # 実行中の動作
+    self.inum_connection = complex(self.base_point[0] - self.parents_anchor[0], self.base_point[1] - self.parents_anchor[1]) # cal_xyで使う.
+    self.previous_part_xyr = list(self.cal_xy(self.first_parents_xyr[0], self.first_parents_xyr[1], self.first_parents_xyr[2]))
+    self.previous_part_xyr.append(self.first_parents_xyr[2] + self.rotate)
 # Sprite
     self.part = pyglet.sprite.Sprite(self.parts_img, x=self.previous_part_xyr[0], y=self.previous_part_xyr[1], batch=batch)
     self.part.rotation += self.previous_part_xyr[2]
 
     self.children_execution = [] # 子のデータ実行.
     for name in self.children_parts_name:
-      self.children_execution.append(mooven(name, self.setting_dir, self.parts_image_dir_path, batch))
+      self.children_execution.append(mooven(this_parts_name=name, setting_dir=self.setting_dir, parts_image_dir_path=self.parts_image_dir_path, bat=batch, pxy=self.previous_part_xyr, parents_anchor=self.origin_point))
+      if self.children_execution[-1].tf:
+        print(f"Expanded {name};")
+      else:
+        del self.children_execution[-1]
+        print(f"Failed to expand {name};")
+        del self.children_parts_name[self.children_parts_name.index(name)]
 
   def children_exe(self):
-    r = self.part.rotation - self.previous_part_xyr[2]
-    x = self.part.x - self.previous_part_xyr[0]
-    y = self.part.y - self.previous_part_xyr[1]
+    xyr = [self.part.x, self.part.y, -self.part.rotation]
     for i in self.children_execution:
-      i.draw(self.dt, x, y, r)
+      i.draw(self.dt, xyr)
 
   def d_rotation(self, movement=[]):
     """
@@ -125,27 +137,36 @@ movementに指定されたやつの動作を開始する
       else:
         delta_omega += do_integral()
         self.acting_time[i] += self.dt
-    self.previous_part_xyr[2] = delta_omega
-    return delta_omega
-
-  def move_new_xy(self):
-    self.part.x += self.parents_xyr[0] + self.base_point[0]*math.cos(self.parents_xyr[0])
-    self.part.y += self.parents_xyr[1] + self.base_point[1]*math.sin(self.parents_xyr[1])
+    self.rotate += delta_omega # 親部品の角と合成されていないこの部品のみの角.
+    self.rotate %= 360
+    self.part.rotation = self.rotate + self.parents_xyr[2]
+    self.part.rotation %= 360
 
   def receive_move(self):
     if self.test_flag:
       self.test_flag = False
-      self.part.rotation += self.d_rotation(movement=["test_2_rotate"])
+      self.d_rotation(movement=["test_0_rotate"])
     else:
-      self.part.rotation += self.d_rotation(movement=[])
+      self.d_rotation(movement=[])
     self.children_exe()
 
-  def draw(self, dt, px, py, pr): # px, py, pr, 親の部品のx, y座標, 角の変位.
+  def cal_xy(self, px, py, pr):
+    """
+  prをラジアンに変換してないやん…(n時間消滅)
+  jsonの階層ミス(13時間), 致命的なクラス継承のバグ(8時間), ラジアンに変換してない(?日)
+    """
+#    print(f"{self.this_parts_name}:{pr}")
+    pr = math.radians(pr)
+    inum_parents_rotate = complex(math.cos(pr), math.sin(pr))
+    xy = self.inum_connection * inum_parents_rotate + complex(px, py)
+    return xy.real, xy.imag
+
+  def draw(self, dt, pxyr): # pxyr, 親の部品のx, y座標, 角.
     self.dt = dt # このフレームでのΔtが何秒か, 親部品のx, y座標, 角度.
-    self.parents_xyr[0] += px
-    self.parents_xyr[1] += py
-    self.parents_xyr[2] += pr
-    self.part.x += self.parents_xyr[0] + self.base_point[0]*math.cos(self.parents_xyr[0])
-    self.part.y += self.parents_xyr[1] + self.base_point[1]*math.sin(self.parents_xyr[1])
-    self.part.rotation += pr
+    self.parents_xyr = pxyr
+    self.part.x, self.part.y = self.cal_xy(self.parents_xyr[0], self.parents_xyr[1], self.parents_xyr[2])
     self.receive_move()
+    if self.this_parts_name == "parts_0_1":
+      print(f"{self.rotate} + {self.parents_xyr[2]} = {self.rotate + self.parents_xyr[2]}")
+      print(f"gap : {(self.rotate + self.parents_xyr[2] - self.part.rotation)%360}")
+      print("")

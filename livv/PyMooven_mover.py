@@ -3,8 +3,8 @@ from pyglet import app
 from pyglet.window import Window
 from MidMooven import MidMooven
 
-display = Window(width=540, height=540) # 1920x1080
-display.set_location(270, 270)
+display = Window(width=720, height=720) # 1920x1080
+display.set_location(256, 64)
 
 batch = pyglet.graphics.Batch()
 
@@ -15,7 +15,6 @@ def update(dt):
   display.clear()
   x.draw(dt)
   batch.draw()
-#  print(dt)
 
 pyglet.clock.schedule_interval(update, 1 / 60)
 
