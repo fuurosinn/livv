@@ -1,0 +1,14 @@
+{
+    "property":
+      {
+        "connection_in_parent":[0, 32],
+        "origin_point":[32, 32],
+        "children_parts_name":[]
+      },
+    "move":
+      {
+        "t0":0,
+        "movement":
+          {}
+      }
+  }

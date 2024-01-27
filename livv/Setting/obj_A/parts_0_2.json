@@ -1,9 +1,9 @@
 {
     "property":
         {
-            "connection_in_parent":[0, 0],
-            "origin_point":[32, 32],
-            "children_parts_name":["parts_0_1"]
+            "connection_in_parent":[224, 32],
+            "origin_point":[32, 224],
+            "children_parts_name":[]
         },
     "move":
         {

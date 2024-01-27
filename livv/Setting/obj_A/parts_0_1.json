@@ -1,18 +1,17 @@
 {
   "property":
     {
-      "connection_in_parent":[32, 224],
+      "connection_in_parent":[224, 32],
       "origin_point":[32, 32],
-      "children_parts_name":[]
+      "children_parts_name":["parts_0_2"]
     },
   "move":
     {
-      "t0":60,
+      "t0":0,
       "movement":
         {
-          "test_0_rotate":[0, 10, "(x+x**2+x**3)\/math.e**(x-1)"],
-          "test_1_rotate":[0, 10, "x"],
-          "test_2_rotate":[0, 10, "-(x+x**2+x**3)\/math.e**(x-1)"]
+          "test_0_rotate":[0, 10, "-(x+x**2+x**3)\/math.e**(x-1)"],
+          "test_1_rotate":[0, 10, "30*math.sin(10*x)"]
         }
     }
 }
