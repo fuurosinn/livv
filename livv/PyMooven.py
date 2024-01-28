@@ -45,6 +45,7 @@ class mooven:
     self.parts_image_dir_path = parts_image_dir_path
     self.parts_image_path = os.path.join(self.parts_image_dir_path, self.this_parts_name) + ".png" # 画像のパス
     self.first_parents_xyr = pxy # 最初の親部品の座標.
+    self.first_parents_xyr[2] *= -1 # 補正。なぜかマイナス掛けないとバグる。まぁどっか見落としているんでしょうな。 checkA
     self.parents_anchor = parents_anchor # 親のアンカー座標.
     try:
       with open(os.path.join(self.setting_dir, self.this_parts_name)+".json", mode="r") as f:
@@ -55,7 +56,12 @@ class mooven:
       return
     self.main_load()
 #    self.test_flag = False
-    self.test_flag = True if this_parts_name == "parts_0" else False
+    if self.this_parts_name == "parts_0":
+      self.test_flag = 0
+    elif self.this_parts_name == "parts_0_1":
+      self.test_flag = 1
+    else:
+      self.test_flag = -1
 
   def main_load(self):
     """
@@ -73,7 +79,7 @@ class mooven:
     self.children_parts_name = self.property["children_parts_name"] # 子パーツのリスト
 
     self.move = self.parts_data["move"]
-    self.rotate = self.move["t0"] # 初期の角度読み込み
+    self.rotate = -self.move["t0"] # 初期の角度読み込み checkA
     self.movement = self.move["movement"]
     self.act_name_list = dict(zip(list(self.movement.keys()), list(range(len(self.movement)))))
     self.movement = list(self.movement.values()) # 式の情報だけになる.
@@ -100,7 +106,7 @@ class mooven:
         del self.children_parts_name[self.children_parts_name.index(name)]
 
   def children_exe(self):
-    xyr = [self.part.x, self.part.y, -self.part.rotation]
+    xyr = [self.part.x, self.part.y, self.part.rotation]
     for i in self.children_execution:
       i.draw(self.dt, xyr)
 
@@ -143,8 +149,11 @@ movementに指定されたやつの動作を開始する
     self.part.rotation %= 360
 
   def receive_move(self):
-    if self.test_flag:
-      self.test_flag = False
+    if self.test_flag == 0:
+      self.test_flag = -1
+      self.d_rotation(movement=["test_0_rotate"])
+    elif self.test_flag == 1:
+      self.test_flag = -1
       self.d_rotation(movement=["test_0_rotate"])
     else:
       self.d_rotation(movement=[])
@@ -156,7 +165,7 @@ movementに指定されたやつの動作を開始する
   jsonの階層ミス(13時間), 致命的なクラス継承のバグ(8時間), ラジアンに変換してない(?日)
     """
 #    print(f"{self.this_parts_name}:{pr}")
-    pr = math.radians(pr)
+    pr = math.radians(-pr)
     inum_parents_rotate = complex(math.cos(pr), math.sin(pr))
     xy = self.inum_connection * inum_parents_rotate + complex(px, py)
     return xy.real, xy.imag
@@ -166,7 +175,3 @@ movementに指定されたやつの動作を開始する
     self.parents_xyr = pxyr
     self.part.x, self.part.y = self.cal_xy(self.parents_xyr[0], self.parents_xyr[1], self.parents_xyr[2])
     self.receive_move()
-    if self.this_parts_name == "parts_0_1":
-      print(f"{self.rotate} + {self.parents_xyr[2]} = {self.rotate + self.parents_xyr[2]}")
-      print(f"gap : {(self.rotate + self.parents_xyr[2] - self.part.rotation)%360}")
-      print("")
