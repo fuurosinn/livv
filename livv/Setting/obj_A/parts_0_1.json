@@ -3,16 +3,28 @@
     {
       "connection_in_parent":[224, 32],
       "origin_point":[32, 32],
-      "children_parts_name":["parts_0_2"]
+      "children_parts_name":["parts_0_2"],
+      "layer":0
     },
   "move":
     {
       "t0":0,
       "movement":
         {
-          "test_0_rotate":[0, 10, "36*x"],
-          "test_1_rotate":[0, 10, "-(x+x**2+x**3)\/math.e**(x-1)"],
-          "test_2_rotate":[0, 10, "30*math.sin(10*x)"]
+          "integral":
+          {
+            "test_0_rotate":[0, 10, "36*x"],
+            "test_1_rotate":[0, 10, "-(x+x**2+x**3)\/math.e**(x-1)"],
+            "test_2_rotate":[0, 10, "30*math.sin(10*x)"]
+          },
+          "formula":
+          {
+            "0":[0, 5, "640*x**4/math.e**(4*x-1)"]
+          },
+          "assign":
+          {
+            "0":[0, 1, [0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0], 0.1]
+          }
         }
     }
 }

@@ -3,15 +3,27 @@
         {
             "connection_in_parent":[224, 32],
             "origin_point":[32, 224],
-            "children_parts_name":[]
+            "children_parts_name":[],
+            "layer":1
         },
     "move":
         {
             "t0":0,
             "movement":
             {
-                "test_0_rotate":[0, 10, "36*x"],
-                "test_1_rotate":[0, 10, "10*math.sin(x*10)"]
+                "integral":
+                {
+                    "test_0_rotate":[0, 10, "36*x"],
+                    "test_1_rotate":[0, 10, "10*math.sin(x*10)"]
+                },
+                "formula":
+                {
+                    "0":[0, 10, "x"]
+                },
+                "assign":
+                {
+                    "0":[0, 1, [0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0], 0.1]
+                }
             }
         }
 }

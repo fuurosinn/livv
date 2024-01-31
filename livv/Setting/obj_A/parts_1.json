@@ -3,7 +3,7 @@
         {
             "connection_in_parent":[0, 0],
             "origin_point":[32, 32],
-            "children_parts_name":["parts_0_1"],
+            "children_parts_name":[],
             "layer":1
         },
     "move":
@@ -13,16 +13,16 @@
             {
                 "integral":
                 {
-                    "test_0_rotate":[0, 10, "36*x"],
+                    "test_0_rotate":[],
                     "test_1_rotate":[0, 10, "10*math.sin(x*10)"]
                 },
                 "formula":
                 {
-                    "0":[0, 7.5, "32*x**3/math.e**(2*x-1)"]
+                    "0":[0, 10, ""]
                 },
                 "assign":
                 {
-                    "0":[0, 1, [0, 2.5, 5, 7.5, 10, 20, 30, 45, 60, 70, 80, 85, 90, 92.5, 95, 80, 65, 47.5, 30, 15, 0], 0.05]
+                    "0":[0, 10, "x", 0.1]
                 }
             }
         }
